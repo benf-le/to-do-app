@@ -43,4 +43,23 @@ export class TaskService {
       console.log(error);
     }
   }
+
+  async updateTask(id: string, taskDTO: TaskDTO) {
+    try {
+      return await this.prismaService.task.update({
+        data: {
+          title: taskDTO.title,
+          description: taskDTO.description,
+          status: taskDTO.status,
+          dueDate: taskDTO.dueDate,
+          estimatedTime: taskDTO.estimatedTime,
+          actualTime: taskDTO.actualTime,
+          completedAt: taskDTO.completedAt,
+        },
+        where: { id },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
