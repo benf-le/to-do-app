@@ -21,5 +21,9 @@ export class TaskDTO {
 
   @IsInt()
   @IsNotEmpty()
-  completedAt: number;
+  actualTime: number;
+
+  @IsDate()
+  @IsNotEmpty()
+  completedAt: Date;
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TaskDTO } from './sto/task.dto';
 
 @Injectable()
 export class TaskService {
@@ -25,4 +26,21 @@ export class TaskService {
     }
   }
 
+  async createTask(taskDTO: TaskDTO) {
+    try {
+      return await this.prismaService.task.create({
+        data: {
+          title: taskDTO.title,
+          description: taskDTO.description,
+          status: taskDTO.status,
+          dueDate: taskDTO.dueDate,
+          estimatedTime: taskDTO.estimatedTime,
+          actualTime: taskDTO.actualTime,
+          completedAt: taskDTO.completedAt,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

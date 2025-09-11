@@ -17,7 +17,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   projects Project[] /// Một user có thể có nhiều project
-  tasks    Task[] /// Một user có thể có nhiều task
+  // tasks    Task[] /// Một user có thể có nhiều task
 }
 
 /// Model `Project` dùng để nhóm các công việc lại.
@@ -32,7 +32,7 @@ model Project {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  tasks Task[] /// Một project có thể chứa nhiều task
+  // tasks Task[] /// Một project có thể chứa nhiều task
 }
 
 /// Model `Task` chứa tất cả thông tin liên quan đến một công việc cần làm.
@@ -52,13 +52,13 @@ model Task {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Mối quan hệ: Một Task thuộc về một User
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Mối quan hệ: Một Task có thể thuộc về một Project (không bắt buộc)
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  // // Mối quan hệ: Một Task thuộc về một User
+  // userId String
+  // user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  //
+  // // Mối quan hệ: Một Task có thể thuộc về một Project (không bắt buộc)
+  // projectId String?
+  // project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 }
 
 /// Enum `Status` định nghĩa các trạng thái có thể có của một Task.
