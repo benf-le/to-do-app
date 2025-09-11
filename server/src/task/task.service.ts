@@ -62,4 +62,14 @@ export class TaskService {
       console.log(error);
     }
   }
+
+  async deleteTask(id: string) {
+    try {
+      return await this.prismaService.task.delete({
+        where: { id },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
