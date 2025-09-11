@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { TaskService } from './task.service';
 
 @Controller('task')
@@ -8,5 +8,10 @@ export class TaskController {
   @Get('/')
   async getTask() {
     return await this.taskService.getAllTasks();
+  }
+
+  @Get('/:id')
+  async getTaskById(@Param('id')id: string) {
+    return await this.taskService.getTasksById(id);
   }
 }

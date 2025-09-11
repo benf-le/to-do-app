@@ -12,4 +12,17 @@ export class TaskService {
       console.log(error);
     }
   }
+
+  async getTasksById(id: string) {
+    try {
+      return await this.prismaService.task.findUnique({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
 }
