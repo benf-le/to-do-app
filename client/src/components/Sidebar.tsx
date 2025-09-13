@@ -6,6 +6,7 @@ export default function Sidebar() {
     const menuItems = [
         { title: "All Tasks", path: "/tasks" },
         { title: "Today Tasks", path: "/tasks/today" },
+        { title: "Calendar", path: "/tasks/calendar" },
     ];
 
     return (
