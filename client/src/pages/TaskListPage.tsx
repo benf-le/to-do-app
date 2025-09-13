@@ -29,8 +29,14 @@ export default function TaskListView() {
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [formValues, setFormValues] = useState<Partial<Task>>({});
 
-    // handle blur -> lưu lại
+
     const handleSave = () => {
+        const payload = { ...formValues };
+
+        // Nếu có dueDate (string từ input), convert thành ISO format
+        if (formValues.dueDate) {
+            payload.dueDate = new Date(formValues.dueDate as string).toISOString();
+        }
         if (editingTaskId === "new") {
             createMutation.mutate(formValues as Task);
         } else if (editingTaskId) {
@@ -54,7 +60,12 @@ export default function TaskListView() {
                     className="bg-amber-500 text-white px-4 py-2 rounded"
                     onClick={() => {
                         setEditingTaskId("new");
-                        setFormValues({title: "", description: "", status: Status.TODO, estimatedTime: 0});
+                        setFormValues({
+                            title: "",
+                            description: "",
+                            status: Status.TODO,
+                            dueDate: new Date().toISOString().split("T")[0]
+                        });
                     }}
                 >
                     + Thêm Task
@@ -69,7 +80,7 @@ export default function TaskListView() {
                         <th className="text-left px-4 py-3">Tên công việc</th>
                         <th className="text-left px-4 py-3">Mô tả</th>
                         <th className="text-left px-4 py-3">Trạng thái</th>
-                        <th className="text-left px-4 py-3">Ước tính</th>
+                        <th className="text-left px-4 py-3">Deadline</th>
                         <th className="text-left px-4 py-3">Thao tác</th>
                     </tr>
                     </thead>
@@ -104,13 +115,13 @@ export default function TaskListView() {
                                 </select>
                             </td>
                             <td className="px-4 py-3">
-                                <input type="number" className="border p-1 rounded w-20"
-                                       value={formValues.estimatedTime || 0}
-                                       onChange={e => setFormValues({
-                                           ...formValues,
-                                           estimatedTime: Number(e.target.value)
-                                       })}
+                                <input
+                                    type="date"
+                                    className="border p-1 rounded"
+                                    value={formValues.dueDate || ""}
+                                    onChange={e => setFormValues({...formValues, dueDate: e.target.value})}
                                 />
+
                             </td>
                             <td className="px-4 py-3 flex gap-2">
                                 <button
@@ -158,12 +169,11 @@ export default function TaskListView() {
                                     </select>
                                 </td>
                                 <td className="px-4 py-3">
-                                    <input type="number" className="border p-1 rounded w-20"
-                                           value={formValues.estimatedTime || 0}
-                                           onChange={e => setFormValues({
-                                               ...formValues,
-                                               estimatedTime: Number(e.target.value)
-                                           })}
+                                    <input
+                                        type="date"
+                                        className="border p-1 rounded"
+                                        value={formValues.dueDate || ""}
+                                        onChange={e => setFormValues({...formValues, dueDate: e.target.value})}
                                     />
                                 </td>
                                 <td className="px-4 py-3 flex gap-2">
@@ -206,13 +216,22 @@ export default function TaskListView() {
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-4 py-3 text-emerald-600 ">{task.estimatedTime}</td>
+                                <td className="px-4 py-3 text-blue-600">
+                                    {task.dueDate
+                                        ? new Date(task.dueDate).toLocaleDateString("vi-VN")
+                                        : "Chưa có"}
+                                </td>
                                 <td className=" py-3 flex gap-2">
                                     <button
                                         className="px-2 py-1 bg-blue-500 text-white rounded"
                                         onClick={() => {
                                             setEditingTaskId(task.id);
-                                            setFormValues(task);
+                                            setFormValues({
+                                                ...task,
+                                                dueDate: task.dueDate
+                                                    ? new Date(task.dueDate).toISOString().split("T")[0]
+                                                    : ""
+                                            });
                                         }}
                                     >Edit
                                     </button>
