@@ -3,6 +3,7 @@ import {Status, type Task} from "../models/task.ts";
 import {createTask, deleteTask, getTasks, updateTask} from "../api/tasks.ts";
 import {useMemo, useState} from "react";
 import AppLayout from "../components/AppLayout.tsx";
+import {FormatDateTimeLocal} from "../components/FormatDateTimeLocal.tsx";
 
 export default function TaskListView() {
     const queryClient = useQueryClient();
@@ -82,9 +83,6 @@ export default function TaskListView() {
     }, [tasks, deadlineSortOrder, statusSortOrder]);
 
 
-
-
-
     return (
         <AppLayout>
         <div className="w-[90%] mx-auto py-6">
@@ -99,7 +97,7 @@ export default function TaskListView() {
                             title: "",
                             description: "",
                             status: Status.TODO,
-                            dueDate: new Date().toISOString().split("T")[0]
+                            dueDate: FormatDateTimeLocal(new Date())
                         });
                     }}
                 >
@@ -180,7 +178,7 @@ export default function TaskListView() {
                             </td>
                             <td className="px-4 py-3">
                                 <input
-                                    type="date"
+                                    type="datetime-local"
                                     className="border p-1 rounded"
                                     value={formValues.dueDate || ""}
                                     onChange={e => setFormValues({...formValues, dueDate: e.target.value})}
@@ -234,7 +232,7 @@ export default function TaskListView() {
                                 </td>
                                 <td className="px-4 py-3">
                                     <input
-                                        type="date"
+                                        type="datetime-local"
                                         className="border p-1 rounded"
                                         value={formValues.dueDate || ""}
                                         onChange={e => setFormValues({...formValues, dueDate: e.target.value})}
@@ -282,7 +280,14 @@ export default function TaskListView() {
                                 </td>
                                 <td className="px-4 py-3 text-blue-600">
                                     {task.dueDate
-                                        ? new Date(task.dueDate).toLocaleDateString("vi-VN")
+                                        ? new Date(task.dueDate).toLocaleDateString("vi-VN",
+                                            {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit"
+                                            })
                                         : "Chưa có"}
                                 </td>
                                 <td className=" py-3 flex gap-2">
@@ -293,7 +298,7 @@ export default function TaskListView() {
                                             setFormValues({
                                                 ...task,
                                                 dueDate: task.dueDate
-                                                    ? new Date(task.dueDate).toISOString().split("T")[0]
+                                                    ? new Date(task.dueDate).toISOString().slice(0, 16) // yyyy-MM-ddTHH:mm
                                                     : ""
                                             });
                                         }}
