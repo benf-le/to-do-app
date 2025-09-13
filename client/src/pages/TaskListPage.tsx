@@ -2,6 +2,7 @@ import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Status, type Task} from "../models/task.ts";
 import {createTask, deleteTask, getTasks, updateTask} from "../api/tasks.ts";
 import {useMemo, useState} from "react";
+import AppLayout from "../components/AppLayout.tsx";
 
 export default function TaskListView() {
     const queryClient = useQueryClient();
@@ -85,6 +86,7 @@ export default function TaskListView() {
 
 
     return (
+        <AppLayout>
         <div className="w-[90%] mx-auto py-6">
             {/* Header */}
             <div className="flex justify-between mb-6">
@@ -320,5 +322,6 @@ export default function TaskListView() {
                 </table>
             </div>
         </div>
+        </AppLayout>
     );
 }
