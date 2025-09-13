@@ -1,7 +1,7 @@
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Status, type Task} from "../models/task.ts";
 import {createTask, deleteTask, getTasks, updateTask} from "../api/tasks.ts";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 
 export default function TaskListView() {
     const queryClient = useQueryClient();
@@ -28,6 +28,7 @@ export default function TaskListView() {
     // state quản lý edit
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [formValues, setFormValues] = useState<Partial<Task>>({});
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
 
     const handleSave = () => {
@@ -51,6 +52,17 @@ export default function TaskListView() {
         setFormValues({});
     };
 
+    // Sắp xếp tasks theo deadline
+    const sortedTasks = useMemo(() => {
+        if (!tasks) return [];
+        if (!sortOrder) return tasks;
+
+        return [...tasks].sort((a, b) => {
+            const da = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+            const db = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+            return sortOrder === "asc" ? da - db : db - da;
+        });
+    }, [tasks, sortOrder]);
     return (
         <div className="w-[90%] mx-auto py-6">
             {/* Header */}
@@ -80,7 +92,18 @@ export default function TaskListView() {
                         <th className="text-left px-4 py-3">Tên công việc</th>
                         <th className="text-left px-4 py-3">Mô tả</th>
                         <th className="text-left px-4 py-3">Trạng thái</th>
-                        <th className="text-left px-4 py-3">Deadline</th>
+                        <th
+                            className="px-4 py-3 text-left cursor-pointer select-none"
+                            onClick={() => {
+                                if (sortOrder === null) setSortOrder("asc");
+                                else if (sortOrder === "asc") setSortOrder("desc");
+                                else setSortOrder(null);
+                            }}
+                        >
+                            Deadline{" "}
+                            {sortOrder === "asc" && "▲"}
+                            {sortOrder === "desc" && "▼"}
+                        </th>
                         <th className="text-left px-4 py-3">Thao tác</th>
                     </tr>
                     </thead>
@@ -141,7 +164,7 @@ export default function TaskListView() {
                     )}
 
                     {/* Các hàng task */}
-                    {tasks?.map((task, idx) => (
+                    {sortedTasks?.map((task, idx) => (
                         editingTaskId === task.id ? (
                             <tr key={task.id} className=" bg-blue-50">
                                 <td className="px-4 py-3">{idx + 1}</td>
