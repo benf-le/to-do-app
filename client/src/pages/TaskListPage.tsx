@@ -28,7 +28,8 @@ export default function TaskListView() {
     // state quản lý edit
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [formValues, setFormValues] = useState<Partial<Task>>({});
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+    const [deadlineSortOrder, setdeadlineSortOrder] = useState<"asc" | "desc">("asc");
+    const [statusSortOrder, setStatusSortOrder] = useState<"asc" | "desc" | null>("desc");
 
 
     const handleSave = () => {
@@ -52,17 +53,37 @@ export default function TaskListView() {
         setFormValues({});
     };
 
-    // Sắp xếp tasks theo deadline
     const sortedTasks = useMemo(() => {
         if (!tasks) return [];
-        if (!sortOrder) return tasks;
+        const result = [...tasks];
 
-        return [...tasks].sort((a, b) => {
-            const da = a.dueDate ? new Date(a.dueDate).getTime() : 0;
-            const db = b.dueDate ? new Date(b.dueDate).getTime() : 0;
-            return sortOrder === "asc" ? da - db : db - da;
-        });
-    }, [tasks, sortOrder]);
+        // sort theo deadline
+        if (deadlineSortOrder) {
+            result.sort((a, b) => {
+                const dateA = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+                const dateB = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+                return deadlineSortOrder === "asc" ? dateA - dateB : dateB - dateA;
+            });
+        }
+
+        // sort theo status (chữ cái)
+        if (statusSortOrder) {
+            result.sort((a, b) => {
+                const sA = a.status || "";
+                const sB = b.status || "";
+                if (sA < sB) return statusSortOrder === "asc" ? -1 : 1;
+                if (sA > sB) return statusSortOrder === "asc" ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return result;
+    }, [tasks, deadlineSortOrder, statusSortOrder]);
+
+
+
+
+
     return (
         <div className="w-[90%] mx-auto py-6">
             {/* Header */}
@@ -91,18 +112,36 @@ export default function TaskListView() {
                         <th className="text-left px-4 py-3">#</th>
                         <th className="text-left px-4 py-3">Tên công việc</th>
                         <th className="text-left px-4 py-3">Mô tả</th>
-                        <th className="text-left px-4 py-3">Trạng thái</th>
+                        <th
+                            className="text-left px-4 py-3 cursor-pointer select-none"
+                            onClick={() =>
+                                setStatusSortOrder(
+                                    statusSortOrder === "asc"
+                                        ? "desc"
+                                        : statusSortOrder === "desc"
+                                            ? null
+                                            : "asc"
+                                )
+                            }
+                        >
+                            Trạng thái{" "}
+                            {statusSortOrder === "asc"
+                                ? "▲"
+                                : statusSortOrder === "desc"
+                                    ? "▼"
+                                    : ""}
+                        </th>
                         <th
                             className="px-4 py-3 text-left cursor-pointer select-none"
                             onClick={() => {
-                                if (sortOrder === null) setSortOrder("asc");
-                                else if (sortOrder === "asc") setSortOrder("desc");
-                                else setSortOrder(null);
+                                if (deadlineSortOrder === null) setdeadlineSortOrder("asc");
+                                else if (deadlineSortOrder === "asc") setdeadlineSortOrder("desc");
+                                else setdeadlineSortOrder(null);
                             }}
                         >
                             Deadline{" "}
-                            {sortOrder === "asc" && "▲"}
-                            {sortOrder === "desc" && "▼"}
+                            {deadlineSortOrder === "asc" && "▲"}
+                            {deadlineSortOrder === "desc" && "▼"}
                         </th>
                         <th className="text-left px-4 py-3">Thao tác</th>
                     </tr>
