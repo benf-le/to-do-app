@@ -1,20 +1,32 @@
 import './App.css'
-import hackathonGraphic from './assets/hackathon-graphic.svg'
-import naverLogo from './assets/naver-logo.svg'
+import {Route, Routes,BrowserRouter as Router} from "react-router-dom";
+import {routes} from "./routes";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <div className="container">
-      <div className="content">
-        <img src={naverLogo} alt="NAVER Vietnam AI Hackathon" className="logo" />
-        
-        <div className="greeting">
-          <p className="hello">Xin chào! 안녕하세요!</p>
-          <p className="subtitle">Hello World</p>
-        </div>
-      </div>
-      
-      <img className="graphic" src={hackathonGraphic} alt="" />
+    <div >
+        <Router>
+            <Routes>
+                {
+                    routes.map((route) => {
+                        const Page = route.page
+
+                        return (
+                            <Route key={route.path} path={route.path} element={
+                                <QueryClientProvider client={queryClient}>
+                                    <Page />
+                                </QueryClientProvider>
+                            }/>
+
+
+                        )
+                    })
+                }
+            </Routes>
+        </Router>
     </div>
   )
 }
