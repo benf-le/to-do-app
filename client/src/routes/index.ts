@@ -3,11 +3,11 @@ import TodayTaskListView from "../pages/TodayTaskListView.tsx";
 
 export const routes=[
     {
-        path:'/',
+        path:'/tasks',
         page: TaskListPage
     },
     {
-        path:'/today',
+        path:'/tasks/today',
         page: TodayTaskListView
     }
 ]
