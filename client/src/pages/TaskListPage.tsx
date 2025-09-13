@@ -1,32 +1,32 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Status, type Task} from "../models/task.ts";
 import {createTask, deleteTask, getTasks, updateTask} from "../api/tasks.ts";
-import { useState } from "react";
+import {useState} from "react";
 
 export default function TaskListView() {
     const queryClient = useQueryClient();
-    const { data: tasks } = useQuery({ queryKey:["tasks"], queryFn:getTasks });
+    const {data: tasks} = useQuery({queryKey: ["tasks"], queryFn: getTasks});
 
     const createMutation = useMutation({
         mutationFn: createTask,
         onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+            queryClient.invalidateQueries({queryKey: ["tasks"]}),
     });
 
     const updateMutation = useMutation({
         mutationFn: (data: { id: string; task: Partial<Task> }) =>
             updateTask(data.id, data.task),
         onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+            queryClient.invalidateQueries({queryKey: ["tasks"]}),
     });
 
     const deleteMutation = useMutation({
         mutationFn: deleteTask,
         onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+            queryClient.invalidateQueries({queryKey: ["tasks"]}),
     });
     // state quản lý edit
-    const [editingTaskId, setEditingTaskId] = useState<string|null>(null);
+    const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [formValues, setFormValues] = useState<Partial<Task>>({});
 
     // handle blur -> lưu lại
@@ -34,7 +34,7 @@ export default function TaskListView() {
         if (editingTaskId === "new") {
             createMutation.mutate(formValues as Task);
         } else if (editingTaskId) {
-            updateMutation.mutate({ id: editingTaskId, task: formValues });
+            updateMutation.mutate({id: editingTaskId, task: formValues});
         }
         setEditingTaskId(null);
         setFormValues({});
@@ -52,9 +52,9 @@ export default function TaskListView() {
                 <h1 className="text-2xl font-bold">Quản Lý Công Việc</h1>
                 <button
                     className="bg-amber-500 text-white px-4 py-2 rounded"
-                    onClick={()=>{
+                    onClick={() => {
                         setEditingTaskId("new");
-                        setFormValues({ title:"", description:"", status:Status.TODO, estimatedTime:0 });
+                        setFormValues({title: "", description: "", status: Status.TODO, estimatedTime: 0});
                     }}
                 >
                     + Thêm Task
@@ -75,27 +75,27 @@ export default function TaskListView() {
                     </thead>
                     <tbody>
                     {/* Hàng mới */}
-                    {editingTaskId==="new" && (
+                    {editingTaskId === "new" && (
                         <tr className="bg-yellow-50">
                             <td className="px-4 py-3">-</td>
                             <td className="px-4 py-3">
                                 <input autoFocus className="border p-1 rounded w-full"
-                                       value={formValues.title||""}
-                                       onChange={e=>setFormValues({...formValues,title:e.target.value})}
+                                       value={formValues.title || ""}
+                                       onChange={e => setFormValues({...formValues, title: e.target.value})}
 
                                 />
                             </td>
                             <td className="px-4 py-3">
                                 <input className="border p-1 rounded w-full"
-                                       value={formValues.description||""}
-                                       onChange={e=>setFormValues({...formValues,description:e.target.value})}
+                                       value={formValues.description || ""}
+                                       onChange={e => setFormValues({...formValues, description: e.target.value})}
 
                                 />
                             </td>
                             <td className="px-4 py-3">
                                 <select
                                     value={formValues.status}
-                                    onChange={e=>setFormValues({...formValues,status:e.target.value as Status})}
+                                    onChange={e => setFormValues({...formValues, status: e.target.value as Status})}
                                     className="border p-1 rounded"
                                 >
                                     <option value={Status.TODO}>TODO</option>
@@ -105,8 +105,11 @@ export default function TaskListView() {
                             </td>
                             <td className="px-4 py-3">
                                 <input type="number" className="border p-1 rounded w-20"
-                                       value={formValues.estimatedTime||0}
-                                       onChange={e=>setFormValues({...formValues,estimatedTime:Number(e.target.value)})}
+                                       value={formValues.estimatedTime || 0}
+                                       onChange={e => setFormValues({
+                                           ...formValues,
+                                           estimatedTime: Number(e.target.value)
+                                       })}
                                 />
                             </td>
                             <td className="px-4 py-3 flex gap-2">
@@ -127,26 +130,26 @@ export default function TaskListView() {
                     )}
 
                     {/* Các hàng task */}
-                    {tasks?.map((task,idx)=>(
-                        editingTaskId===task.id ? (
+                    {tasks?.map((task, idx) => (
+                        editingTaskId === task.id ? (
                             <tr key={task.id} className=" bg-blue-50">
-                                <td className="px-4 py-3">{idx+1}</td>
-                                <td className="px-4 py-3">
-                                    <input autoFocus className="border p-1 rounded w-full"
-                                           value={formValues.title||""}
-                                           onChange={e=>setFormValues({...formValues,title:e.target.value})}
-                                           />
+                                <td className="px-4 py-3">{idx + 1}</td>
+                                <td className="px-4 py-3 ">
+                                    <input autoFocus className="border p-1 rounded w-full "
+                                           value={formValues.title || ""}
+                                           onChange={e => setFormValues({...formValues, title: e.target.value})}
+                                    />
                                 </td>
                                 <td className="px-4 py-3">
                                     <input className="border p-1 rounded w-full"
-                                           value={formValues.description||""}
-                                           onChange={e=>setFormValues({...formValues,description:e.target.value})}
-                                           />
+                                           value={formValues.description || ""}
+                                           onChange={e => setFormValues({...formValues, description: e.target.value})}
+                                    />
                                 </td>
                                 <td className="px-4 py-3">
                                     <select
                                         value={formValues.status}
-                                        onChange={e=>setFormValues({...formValues,status:e.target.value as Status})}
+                                        onChange={e => setFormValues({...formValues, status: e.target.value as Status})}
                                         className="border p-1 rounded"
                                     >
                                         <option value={Status.TODO}>TODO</option>
@@ -156,9 +159,12 @@ export default function TaskListView() {
                                 </td>
                                 <td className="px-4 py-3">
                                     <input type="number" className="border p-1 rounded w-20"
-                                           value={formValues.estimatedTime||0}
-                                           onChange={e=>setFormValues({...formValues,estimatedTime:Number(e.target.value)})}
-                                           />
+                                           value={formValues.estimatedTime || 0}
+                                           onChange={e => setFormValues({
+                                               ...formValues,
+                                               estimatedTime: Number(e.target.value)
+                                           })}
+                                    />
                                 </td>
                                 <td className="px-4 py-3 flex gap-2">
                                     <button
@@ -177,22 +183,42 @@ export default function TaskListView() {
                             </tr>
                         ) : (
                             <tr key={task.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3">{idx+1}</td>
-                                <td className="px-4 py-3 font-semibold">{task.title}</td>
-                                <td className="px-4 py-3 text-gray-500 truncate">{task.description}</td>
-                                <td className="px-4 py-3">{task.status}</td>
-                                <td className="px-4 py-3 text-emerald-600">{task.estimatedTime}</td>
-                                <td className="px-4 py-3">
+                                <td className="px-4 py-3 ">{idx + 1}</td>
+                                <td className="px-4 py-3 font-semibold max-w-[15rem]">{task.title}</td>
+                                <td className="px-4 py-3 text-gray-500 truncate max-w-[20rem]">{task.description}</td>
+                                <td className="px-4 py-3 ">
+                                    {task.status === Status.DONE && (
+                                        <span
+                                            className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
+                                          DONE
+                                        </span>
+                                    )}
+                                    {task.status === Status.IN_PROGRESS && (
+                                        <span
+                                            className="px-3 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
+                                          IN PROGRESS
+                                        </span>
+                                    )}
+                                    {task.status === Status.TODO && (
+                                        <span
+                                            className="px-3 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700">
+                                          TODO
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="px-4 py-3 text-emerald-600 ">{task.estimatedTime}</td>
+                                <td className=" py-3 flex gap-2">
                                     <button
-                                        className="text-blue-600"
-                                        onClick={()=>{
+                                        className="px-2 py-1 bg-blue-500 text-white rounded"
+                                        onClick={() => {
                                             setEditingTaskId(task.id);
                                             setFormValues(task);
                                         }}
-                                    >✎</button>
+                                    >Edit
+                                    </button>
 
                                     <button
-                                        className="text-red-600"
+                                        className="px-2 py-1 bg-red-500 text-white rounded "
                                         onClick={() => {
                                             if (
                                                 window.confirm(
@@ -203,7 +229,7 @@ export default function TaskListView() {
                                             }
                                         }}
                                     >
-                                        🗑
+                                        Delete
                                     </button>
                                 </td>
                             </tr>
