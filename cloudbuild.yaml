@@ -1,0 +1,74 @@
+steps:
+# ==============================================================================
+# BACKEND DEPLOYMENT (NestJS on Cloud Run)
+# ==============================================================================
+
+# 0. Generate Prisma Client
+- name: 'node:22'
+  entrypoint: 'npx'
+  args: ['prisma', 'generate']
+  dir: 'server' # Thư mục chứa code backend
+# 1. Build backend Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '-t'
+    - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/to-do-app-repo/to-do-app-repo:$SHORT_SHA'
+    - '.'
+  dir: 'server' # Thư mục chứa code NestJS
+
+# 2. Push backend image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'push'
+    - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/to-do-app-repo/to-do-app-repo:$SHORT_SHA'
+
+# 3. Deploy backend to Cloud Run with Secrets
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - 'to-do-app-service'
+    - '--image=asia-southeast1-docker.pkg.dev/$PROJECT_ID/to-do-app-repo/to-do-app-repo:$SHORT_SHA'
+    - '--region=asia-southeast1'
+    - '--platform=managed'
+    - '--port=3000'
+    - '--allow-unauthenticated'
+    - '--set-env-vars=NON_SECRET_VAR=some_value'
+    - '--set-secrets=DATABASE_URL=db-connection-string:latest'
+
+# ==============================================================================
+# FRONTEND DEPLOYMENT (ReactJS on GCS)
+# ==============================================================================
+
+# 4. Build frontend
+- name: 'node:22' # Sử dụng phiên bản Node.js hiện đại
+  entrypoint: 'npm'
+  args: ['install']
+  dir: 'client' # Thư mục chứa code ReactJS
+- name: 'node:22'
+  entrypoint: 'npm'
+  args: ['build']
+  dir: 'client'
+
+# 5. Deploy frontend to GCS
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gsutil'
+  args:
+    - '-m'
+    - 'rsync'
+    - '-r'
+    - './dist' # Thư mục build của Vite là 'dist'
+    - 'gs://todoapp-reactjs-bucket-name'
+  dir: 'client'
+
+# This is required to tell Cloud Build which images to push to the registry.
+images:
+  - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/to-do-app-repo/to-do-app-repo:$SHORT_SHA'
+
+# ==============================================================================
+# ADD LOGGING OPTIONS TO FIX ERROR
+# ==============================================================================
+options:
+  logging: CLOUD_LOGGING_ONLY
