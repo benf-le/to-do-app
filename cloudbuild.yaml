@@ -57,9 +57,8 @@ steps:
   entrypoint: 'gsutil'
   args:
     - '-m'
-    - 'cp'
-    - '-rZ'
-    - './dist/*'
+    - 'rsync'
+    - '-r'
     - './dist' # Thư mục build của Vite là 'dist'
     - 'gs://todoapp-reactjs-bucket-name'
   dir: 'client'
