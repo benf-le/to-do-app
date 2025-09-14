@@ -59,6 +59,7 @@ steps:
     - '-m'
     - 'rsync'
     - '-r'
+    - '-d'
     - './dist' # Thư mục build của Vite là 'dist'
     - 'gs://todoapp-reactjs-bucket-name'
   dir: 'client'
