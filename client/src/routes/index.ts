@@ -1,5 +1,6 @@
 import TaskListPage from "../pages/TaskListPage.tsx";
 import TodayTaskListView from "../pages/TodayTaskListView.tsx";
+import CalendarView from "../pages/CalendarView.tsx";
 
 export const routes=[
     {
@@ -9,5 +10,9 @@ export const routes=[
     {
         path:'/tasks/today',
         page: TodayTaskListView
+    },
+    {
+        path:'/tasks/calendar',
+        page: CalendarView
     }
 ]
