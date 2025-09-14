@@ -49,7 +49,7 @@ steps:
   dir: 'client' # Thư mục chứa code ReactJS
 - name: 'node:22'
   entrypoint: 'npm'
-  args: ['build']
+  args: ['run','build']
   dir: 'client'
 
 # 5. Deploy frontend to GCS
