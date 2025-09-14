@@ -30,7 +30,7 @@ export default function TaskListView() {
     // state quản lý edit
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [formValues, setFormValues] = useState<Partial<Task>>({});
-    const [deadlineSortOrder, setdeadlineSortOrder] = useState<"asc" | "desc">("asc");
+    const [deadlineSortOrder, setdeadlineSortOrder] = useState<"asc" | "desc"|null>("asc");
     const [statusSortOrder, setStatusSortOrder] = useState<"asc" | "desc" | null>("desc");
 
 

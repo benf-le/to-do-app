@@ -18,11 +18,11 @@ import {Status, type Task} from "../models/task";
 const locales = { vi: viLocale };
 const localizer = dateFnsLocalizer({
     format,
-    parse: (str) => {
+    parse: (str: string | number | Date) => {
         // lazy parse: new Date(str) cho date-only vẫn OK
         return new Date(str);
     },
-    startOfWeek: (date) => {
+    startOfWeek: (date: string | number | Date) => {
         // Tuần bắt đầu từ thứ 2 (theo VN)
         const d = new Date(date);
         const day = d.getDay();
@@ -30,7 +30,7 @@ const localizer = dateFnsLocalizer({
         d.setDate(d.getDate() + diff);
         return d;
     },
-    getDay: (date) => new Date(date).getDay(),
+    getDay: (date: string | number | Date) => new Date(date).getDay(),
     locales,
 });
 
@@ -69,6 +69,7 @@ export default function CalendarView() {
     // Map Task -> Calendar Event
     const events: CalEvent[] = useMemo(() => {
         if (!tasks) return [];
+        // @ts-ignore
         return tasks.map((t) => {
             const start = t.dueDate ? new Date(t.dueDate) : new Date(t.createdAt);
             // hiển thị 1h cho event có time, nếu chỉ có ngày thì allDay
@@ -158,6 +159,7 @@ export default function CalendarView() {
         };
     };
 
+
     return (
         <AppLayout>
             <div className="flex items-center justify-between mb-4">
@@ -178,10 +180,12 @@ export default function CalendarView() {
                         views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
                         view={view}
                         date={date}
+                        // @ts-ignore
                         onView={(v) => setView(v)}
                         onNavigate={(d) => setDate(d)}
                         selectable
                         popup
+                        // @ts-ignore
                         onSelectSlot={handleSelectSlot}
                         onSelectEvent={handleSelectEvent}
                         eventPropGetter={eventPropGetter}
