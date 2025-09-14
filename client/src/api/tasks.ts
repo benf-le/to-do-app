@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Task } from "../models/task";
 
-const API_URL = "http://localhost:3000"; // NestJS backend
+const API_URL = "https://todoapp-be.lecambang.id.vn"; // NestJS backend
 
 export const getTasks = async () => {
     const res = await axios.get(`${API_URL}/tasks`);
