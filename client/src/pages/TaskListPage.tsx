@@ -88,7 +88,7 @@ export default function TaskListView() {
         <div className="w-[90%] mx-auto py-6">
             {/* Header */}
             <div className="flex justify-between mb-6">
-                <h1 className="text-2xl font-bold">Quản Lý Công Việc</h1>
+                <h1 className="text-2xl font-bold">All Task</h1>
                 <button
                     className="bg-amber-500 text-white px-4 py-2 rounded"
                     onClick={() => {
@@ -101,7 +101,7 @@ export default function TaskListView() {
                         });
                     }}
                 >
-                    + Thêm Task
+                    + Create Task
                 </button>
             </div>
 
@@ -110,8 +110,8 @@ export default function TaskListView() {
                     <thead className="bg-gray-50">
                     <tr>
                         <th className="text-left px-4 py-3">#</th>
-                        <th className="text-left px-4 py-3">Tên công việc</th>
-                        <th className="text-left px-4 py-3">Mô tả</th>
+                        <th className="text-left px-4 py-3">Name</th>
+                        <th className="text-left px-4 py-3">Description</th>
                         <th
                             className="text-left px-4 py-3 cursor-pointer select-none"
                             onClick={() =>
@@ -124,7 +124,7 @@ export default function TaskListView() {
                                 )
                             }
                         >
-                            Trạng thái{" "}
+                            Status{" "}
                             {statusSortOrder === "asc"
                                 ? "▲"
                                 : statusSortOrder === "desc"
@@ -143,7 +143,7 @@ export default function TaskListView() {
                             {deadlineSortOrder === "asc" && "▲"}
                             {deadlineSortOrder === "desc" && "▼"}
                         </th>
-                        <th className="text-left px-4 py-3">Thao tác</th>
+                        <th className="text-left px-4 py-3">Action</th>
                     </tr>
                     </thead>
                     <tbody>
