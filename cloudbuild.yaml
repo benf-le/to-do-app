@@ -42,24 +42,25 @@ steps:
 # FRONTEND DEPLOYMENT (ReactJS on GCS)
 # ==============================================================================
 
-# 4. Install deps & build frontend
-- name: 'node:22'
+# 4. Build frontend
+- name: 'node:22' # Sử dụng phiên bản Node.js hiện đại
   entrypoint: 'npm'
-  args: ['ci']   # dùng 'ci' cho build production (ổn định hơn install)
-  dir: 'client'
+  args: ['install']
+  dir: 'client' # Thư mục chứa code ReactJS
 - name: 'node:22'
   entrypoint: 'npm'
   args: ['run','build']
   dir: 'client'
 
-# 5. Deploy frontend to GCS (sync new build)
+# 5. Deploy frontend to GCS
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'bash'
+  entrypoint: 'gsutil'
   args:
-    - '-c'
-    - |
-      gsutil -m rsync -r ./dist gs://todoapp-reactjs-bucket-name
-      gsutil -m setmeta -h "Cache-Control:no-cache,max-age=0" gs://todoapp-reactjs-bucket-name/**
+    - '-m'
+    - 'rsync'
+    - '-r'
+    - './dist' # Thư mục build của Vite là 'dist'
+    - 'gs://todoapp-reactjs-bucket-name'
   dir: 'client'
 
 # This is required to tell Cloud Build which images to push to the registry.
