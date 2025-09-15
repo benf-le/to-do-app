@@ -4,9 +4,9 @@ export default function Sidebar() {
     const location = useLocation();
 
     const menuItems = [
-        { title: "All Tasks", path: "/tasks" },
-        { title: "Today Tasks", path: "/tasks/today" },
-        { title: "Calendar", path: "/tasks/calendar" },
+        { title: "All Tasks", path: "/" },
+        { title: "Today Tasks", path: "/today" },
+        { title: "Calendar", path: "/calendar" },
     ];
 
     return (
