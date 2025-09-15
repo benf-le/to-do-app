@@ -4,15 +4,15 @@ import CalendarView from "../pages/CalendarView.tsx";
 
 export const routes=[
     {
-        path:'/tasks',
+        path:'/',
         page: TaskListPage
     },
     {
-        path:'/tasks/today',
+        path:'/today',
         page: TodayTaskListView
     },
     {
-        path:'/tasks/calendar',
+        path:'/calendar',
         page: CalendarView
     }
 ]
