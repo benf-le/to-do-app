@@ -1,11 +1,4 @@
-# To-Do App -- Preliminary Assignment Submission
-
-⚠️ Please complete **all sections marked with the ✍️ icon** --- these
-are required for your submission.
-
-👀 Please Check ASSIGNMENT.md file in this repository for assignment
-requirements.
-
+To-Do App 
 ------------------------------------------------------------------------
 
 ## 🚀 Project Setup & Usage
@@ -126,26 +119,3 @@ actualTime, completedAt, createdAt, updatedAt.
 
 ------------------------------------------------------------------------
 
-## 🧠 Reflection
-
-### a. If you had more time, what would you expand?
-
--   Notification and deadline reminders.
--   Multi-user login with authentication.
--   AI study planner and scheduling assistant.
--   Analytics View to track performance.
-
-### b. If you integrate AI APIs more for your app, what would you do?
-
--   Integrate OpenAI/Gemini to generate study plans based on habits and
-    past tasks.
--   Suggest realistic estimated times for new tasks based on history
-    (`estimatedTime` vs `actualTime`).
-
-------------------------------------------------------------------------
-
-## ✅ Checklist
-
--   [x] Code runs without errors
--   [x] All required features implemented (add/edit/delete/complete tasks)  
--   [x] All ✍️ sections are filled  
