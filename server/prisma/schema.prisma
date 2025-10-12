@@ -11,13 +11,18 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  name      String?
+  firstName String
+  lastName  String
   password  String
+  isActive  Boolean  @default(true)
+  userType  UserType
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   projects Project[] /// Một user có thể có nhiều project
+
   // tasks    Task[] /// Một user có thể có nhiều task
+  @@map("users")
 }
 
 /// Model `Project` dùng để nhóm các công việc lại.
@@ -33,6 +38,7 @@ model Project {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // tasks Task[] /// Một project có thể chứa nhiều task
+  @@map("projects")
 }
 
 /// Model `Task` chứa tất cả thông tin liên quan đến một công việc cần làm.
@@ -59,6 +65,8 @@ model Task {
   // // Mối quan hệ: Một Task có thể thuộc về một Project (không bắt buộc)
   // projectId String?
   // project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("tasks")
 }
 
 /// Enum `Status` định nghĩa các trạng thái có thể có của một Task.
@@ -66,4 +74,9 @@ enum Status {
   TODO
   IN_PROGRESS
   DONE
+}
+
+enum UserType {
+  USER
+  ADMIN
 }
