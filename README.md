@@ -52,12 +52,12 @@ requirements.
 ## 🎥 Demo Video
 
 **Demo video link (≤ 2 minutes):**
-📌 **Not recorded yet** (will be uploaded to YouTube as **Unlisted**).
+📌 https://youtu.be/h2i6JEEeoCY
 
 The demo video will include:
 - CRUD (add/edit/delete/complete tasks)
 - Calendar View (display tasks by date/month)
-- Analytics View (to be added later, currently not implemented)
+- Today List View (display tasks by today)
 
 ------------------------------------------------------------------------
 
@@ -83,6 +83,7 @@ to manage their tasks.
 -   **CRUD Task:** add, edit, delete, mark as complete.
 -   **Calendar View:** display tasks by date/month.
 -   **List View:** list of tasks, sortable by deadline and status.
+-   **Today View:** display tasks by today, sortable by deadline and status.
 -   **User interaction:**
     -   Add: click **+ Add Task**, fill in info, save.
     -   Edit: click **Edit** → change details → Save/Cancel.
@@ -146,6 +147,5 @@ actualTime, completedAt, createdAt, updatedAt.
 ## ✅ Checklist
 
 -   [x] Code runs without errors
--   [x] Full CRUD implemented (add/edit/delete/complete tasks)
--   [x] List View + Calendar View implemented and functional
--   [x] Deployment link + setup instructions added in README
+-   [x] All required features implemented (add/edit/delete/complete tasks)  
+-   [x] All ✍️ sections are filled  
