@@ -8,8 +8,8 @@ To-Do App
 -   Clone the repository:
 
     ``` bash
-    git clone <https://github.com/NAVER-Vietnam-AI-Hackathon/web-track-naver-vietnam-ai-hackathon-benf-le>
-    cd <web-track-naver-vietnam-ai-hackathon-benf-le>
+    git clone <https://github.com/benf-le/to-do-app.git>
+    cd <to-do-app>
     ```
 
 -   Install dependencies:
