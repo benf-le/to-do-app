@@ -1,4 +1,9 @@
-import { ConflictException, HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User, UserType } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
@@ -65,37 +70,53 @@ export class AuthService {
       },
     });
 
-    const accessToken = await this.generateJWT(user.firstName, user.lastName, user.email, user.id, user.userType)
-    return "User registered successfully\n Access Token: " + accessToken;
+    const accessToken = await this.generateJWT(
+      user.firstName,
+      user.lastName,
+      user.email,
+      user.id,
+      user.userType,
+    );
+    return 'access_token' + accessToken;
   }
-
 
   async login(loginUser: SignInParams) {
     const user = await this.prismaService.user.findUnique({
-      where:{
+      where: {
         email: loginUser.email,
-      }
-    })
+      },
+    });
 
     if (!user) {
-      throw new HttpException("Invalid email", 400)
+      throw new HttpException('Invalid email', 400);
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException('Account is locked.Please contact with admin.');
+      throw new UnauthorizedException(
+        'Account is locked.Please contact with admin.',
+      );
     }
 
-    const hashedPassword = user.password
+    const hashedPassword = user.password;
 
-    const isValidPassword = await bcrypt.compare(loginUser.password, hashedPassword);
+    const isValidPassword = await bcrypt.compare(
+      loginUser.password,
+      hashedPassword,
+    );
     if (!isValidPassword) {
-      throw new HttpException("Invalid password", 400)
+      throw new HttpException('Invalid password', 400);
     }
 
-    console.log(user.userType)
+    console.log(user.userType);
 
-    const accessToken = this.generateJWT(user.firstName, user.lastName, user.email, user.id, user.userType)
+    const accessToken = this.generateJWT(
+      user.firstName,
+      user.lastName,
+      user.email,
+      user.id,
+      user.userType,
+    );
 
-    return {'Access Token': accessToken, 'UserId': user.id}
+    return { 'access_token': accessToken, UserId: user.id };
   }
 }
