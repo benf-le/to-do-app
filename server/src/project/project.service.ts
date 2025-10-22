@@ -48,7 +48,7 @@ export class ProjectService {
     });
   }
 
-  async deleteProject( id: string) {
+  async deleteProject(id: string) {
     return this.prismaService.project.delete({
       where: { id },
     });
