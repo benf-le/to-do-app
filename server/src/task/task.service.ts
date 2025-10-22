@@ -26,7 +26,7 @@ export class TaskService {
     }
   }
 
-  async createTask(taskDTO: TaskDTO) {
+  async createTask(taskDTO: TaskDTO, userId: string) {
     try {
       return await this.prismaService.task.create({
         data: {
@@ -37,6 +37,7 @@ export class TaskService {
           estimatedTime: taskDTO.estimatedTime,
           actualTime: taskDTO.actualTime,
           completedAt: taskDTO.completedAt,
+          userId: userId,
         },
       });
     } catch (error) {

@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { TaskDTO } from './dto/task.dto';
+import {UserInfo, Users} from "../auth/decorator";
 
 @Controller('tasks')
 export class TaskController {
@@ -25,8 +26,8 @@ export class TaskController {
   }
 
   @Post('/create')
-  createTask(@Body() taskDTO: TaskDTO) {
-    return this.taskService.createTask(taskDTO);
+  createTask(@Body() taskDTO: TaskDTO, @Users() user: UserInfo) {
+    return this.taskService.createTask(taskDTO, user.id);
   }
 
   @Patch('/update/:id')
