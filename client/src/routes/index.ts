@@ -8,26 +8,21 @@ export const routes=[
     {
         path:'/sign-up',
         page: SignUp,
-        // isProtected:false,
     },
     {
         path:'/login',
         page: Login,
-        // isProtected:false,
     },
     {
         path:'/',
         page: TaskListPage,
-        // isProtected:true,
     },
     {
         path:'/today',
         page: TodayTaskListView,
-        // isProtected:true
     },
     {
         path:'/calendar',
         page: CalendarView,
-        // isProtected:true
     }
 ]
