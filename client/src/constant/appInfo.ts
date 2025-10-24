@@ -1,4 +1,4 @@
-export const BASE_URL =`http://localhost:3000`
-// export const BASE_URL =`https://be-verifysupp.lecambang.id.vn`
+//export const BASE_URL =`http://localhost:3000`
+export const BASE_URL =`https://be-verifysupp.lecambang.id.vn`
 // export const CHATWOOT_URL=`http://34.55.138.114:3000` run local
 export const CHATWOOT_URL=`https://chatwoot.lecambang.id.vn` //run gcp
