@@ -1,75 +1,31 @@
+// In authorization.guard.ts
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
 import { Reflector } from '@nestjs/core';
-import * as process from 'process';
-import { PrismaService } from '../../prisma/prisma.service';
-
-interface JWTPayload {
-  email: string;
-  id: string;
-  createdAt: number;
-  updatedAt: number;
-}
+import { UserType, User } from '@prisma/client'; // Import User model
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private prismaService: PrismaService,
-  ) {}
+  constructor(private reflector: Reflector) {} // Không cần PrismaService ở đây nữa
 
   async canActivate(context: ExecutionContext) {
-    const requiredRoles = this.reflector.getAllAndOverride('roles', [
-      context.getClass(),
+    const requiredRoles = this.reflector.getAllAndOverride<UserType[]>('roles', [
       context.getHandler(),
+      context.getClass(),
     ]);
-    console.log('The required roles are', requiredRoles);
 
-    if (requiredRoles?.length) {
-      //Grab the JWT from the request header and verify it
-      const request = context.switchToHttp().getRequest();
-      const token = request.headers?.authorization?.split('Bearer ')[1];
-      try {
-        // Lấy secret key ra
-        const secret = process.env.JSON_TOKEN_KEY;
-
-        // Kiểm tra xem nó có tồn tại không
-        if (!secret) {
-          console.error(
-            'Lỗi nghiêm trọng: JSON_TOKEN_KEY chưa được thiết lập!',
-          );
-          return false; // Hoặc ném ra một lỗi 500
-        }
-        // 1. Bỏ 'await' vì jwt.verify là hàm đồng bộ
-        const payload = jwt.verify(
-          token,
-          secret,
-        ) as unknown as JWTPayload; // 2. Ép kiểu qua 'unknown' rồi mới tới 'JWTPayload'
-
-        const user = await this.prismaService.user.findUnique({
-          where: {
-            id: payload.id, // Bây giờ code sẽ chạy
-          },
-        });
-
-        if (!user) return false;
-
-        if (requiredRoles.includes(user.userType)) return true;
-        return false;
-      } catch (e) {
-        // Lưu ý: Lỗi (e) ở đây có thể là 'TokenExpiredError' hoặc 'JsonWebTokenError'
-        // Bạn nên console.log(e) để xử lý tốt hơn
-        console.error('Lỗi xác thực token:', e.message);
-        return false;
-      }
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true; // Nếu không yêu cầu vai trò, cho phép
     }
-    //
-    // const userRoles = request.user.role
-    //
-    // if(requiredRoles !== userRoles) return false
-    //
-    //
-    // console.log('INSIDE AUTHORIZATION GUARD')
-    return true;
+
+    const request = context.switchToHttp().getRequest();
+    const user: User = request.user; // Lấy user đã được JwtStrategy xác thực
+
+    // Nếu không có user (bị MyJwtGuard chặn) hoặc user không có vai trò
+    if (!user || !user.userType) {
+      return false;
+    }
+
+    // Kiểm tra xem vai trò của user có nằm trong danh sách vai trò được yêu cầu không
+    return requiredRoles.includes(user.userType);
   }
 }

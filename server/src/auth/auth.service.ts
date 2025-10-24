@@ -117,6 +117,16 @@ export class AuthService {
       user.userType,
     );
 
-    return { 'access_token': accessToken, UserId: user.id };
+    return {
+      access_token: accessToken,
+      // Gửi toàn bộ thông tin user mà frontend cần
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userType: user.userType,
+      },
+    };
   }
 }
