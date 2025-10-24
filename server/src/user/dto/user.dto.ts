@@ -3,7 +3,7 @@ import {
   IsString,
   IsNotEmpty,
   IsEnum,
-  IsBoolean,
+  IsBoolean, IsOptional,
 } from 'class-validator';
 import { UserType } from '@prisma/client';
 
