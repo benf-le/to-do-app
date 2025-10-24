@@ -6,12 +6,15 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { TaskDTO } from './dto/task.dto';
-import {UserInfo, Users} from "../auth/decorator";
+import { UserInfo, Users } from '../auth/decorator';
+import { MyJwtGuard } from '../auth/guard';
 
 @Controller('tasks')
+@UseGuards(MyJwtGuard)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
@@ -27,6 +30,7 @@ export class TaskController {
 
   @Post('/create')
   createTask(@Body() taskDTO: TaskDTO, @Users() user: UserInfo) {
+    console.log('Controller đã nhận request. User ID:', user?.id);
     return this.taskService.createTask(taskDTO, user.id);
   }
 
