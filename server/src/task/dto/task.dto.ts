@@ -1,4 +1,4 @@
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Status } from '@prisma/client';
 
 export class TaskDTO {
@@ -6,7 +6,7 @@ export class TaskDTO {
   title: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   description: string;
 
   @IsEnum(Status)
@@ -16,14 +16,14 @@ export class TaskDTO {
   dueDate: Date;
 
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   estimatedTime: number;
 
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   actualTime: number;
 
   @IsDate()
-  @IsNotEmpty()
+  @IsOptional()
   completedAt: Date;
 }
