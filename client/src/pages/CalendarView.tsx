@@ -11,7 +11,7 @@ import {
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-import AppLayout from "../components/AppLayout";
+
 import {getTasks, createTask, updateTask, deleteTask} from "../api/tasks";
 import {Status, type Task} from "../models/task";
 
@@ -161,7 +161,7 @@ export default function CalendarView() {
 
 
     return (
-        <AppLayout>
+        <div>
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-bold">Calendar View</h1>
                 <div className="text-sm text-gray-600">Xem theo tháng/tuần/ngày. Click ngày để thêm, click event để sửa/xoá.</div>
@@ -196,6 +196,6 @@ export default function CalendarView() {
                     />
                 )}
             </div>
-        </AppLayout>
+        </div>
     );
 }
