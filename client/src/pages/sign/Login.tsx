@@ -2,9 +2,9 @@
 import { useEffect, useState, FormEvent } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useCookies } from "react-cookie"; // Make sure react-cookie is installed
+import { useCookies } from "react-cookie";
+import {BASE_URL} from "../../constant/appInfo.ts"; // Make sure react-cookie is installed
 
-const BASE_URL = "http://localhost:3000";
 
 interface LoginResponse {
     access_token: string;
