@@ -40,11 +40,11 @@ export default function TodayTaskListView() {
     // const handleCancel = () => { ... };
 
     // Lọc task theo hôm nay
-    const todayTasks = tasks?.filter(
-        (task: Task ) => // Sử dụng kiểu Task đầy đủ
+    const todayTasks = Array.isArray(tasks) ? tasks.filter(
+        (task: Task ) =>
             task.dueDate &&
             new Date(task.dueDate).toISOString().split("T")[0] === today
-    );
+    ) : []; // Nếu 'tasks' không phải là mảng, dùng mảng rỗng
 
     // --- COMPONENT MODAL (SAO CHÉP TỪ TASKLISTVIEW) ---
     const TaskDetailModal = ({
