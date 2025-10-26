@@ -142,7 +142,7 @@ export default function TodayTaskListView() {
 
                     {/* Status Badge */}
                     <div className="mb-4">
-                        <label className="text-sm font-medium text-gray-500">Trạng thái</label>
+                        <label className="text-sm font-medium text-gray-500">Status</label>
                         <div className="mt-1">
                             {isEditing ? (
                                 <select
@@ -151,15 +151,15 @@ export default function TodayTaskListView() {
                                     onChange={handleInputChange}
                                     className="border p-2 rounded w-full"
                                 >
-                                    <option value={Status.TODO}>CẦN LÀM</option>
-                                    <option value={Status.IN_PROGRESS}>ĐANG TIẾN HÀNH</option>
-                                    <option value={Status.DONE}>HOÀN THÀNH</option>
+                                    <option value={Status.TODO}>TO DO</option>
+                                    <option value={Status.IN_PROGRESS}>IN PROGRESS</option>
+                                    <option value={Status.DONE}>DONE</option>
                                 </select>
                             ) : (
                                 <>
-                                    {displayTask.status === Status.DONE && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-emerald-100 text-emerald-700">HOÀN THÀNH</span> )}
-                                    {displayTask.status === Status.IN_PROGRESS && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-amber-100 text-amber-700">ĐANG TIẾN HÀNH</span> )}
-                                    {displayTask.status === Status.TODO && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 text-gray-700">CẦN LÀM</span> )}
+                                    {displayTask.status === Status.DONE && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-emerald-100 text-emerald-700">DONE</span> )}
+                                    {displayTask.status === Status.IN_PROGRESS && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-amber-100 text-amber-700">IN PROGRESS</span> )}
+                                    {displayTask.status === Status.TODO && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 text-gray-700">TO DO</span> )}
                                 </>
                             )}
                         </div>
@@ -174,11 +174,11 @@ export default function TodayTaskListView() {
                                 value={form.description || ""}
                                 onChange={handleInputChange}
                                 className="text-gray-700 mt-1 bg-gray-50 p-3 rounded w-full border min-h-[100px] max-h-[250px] overflow-y-auto focus:outline-none focus:border-blue-500"
-                                placeholder="Mô tả công việc"
+                                placeholder="Task Description"
                             />
                         ) : (
                             <p className="text-gray-700 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded min-h-[100px] max-h-[250px] overflow-y-auto">
-                                {displayTask.description || "Không có mô tả."}
+                                {displayTask.description || "No description."}
                             </p>
                         )}
                     </div>
@@ -205,11 +205,11 @@ export default function TodayTaskListView() {
                         {!isEditing && initialTask && (
                             <>
                                 <div>
-                                    <div className="font-medium text-gray-500 text-sm">Ngày tạo</div>
+                                    <div className="font-medium text-gray-500 text-sm">Created At</div>
                                     <div>{formatDate(displayTask.createdAt)}</div>
                                 </div>
                                 <div>
-                                    <div className="font-medium text-gray-500 text-sm">Cập nhật lần cuối</div>
+                                    <div className="font-medium text-gray-500 text-sm">Last Updated</div>
                                     <div>{formatDate(displayTask.updatedAt)}</div>
                                 </div>
                             </>
@@ -224,13 +224,13 @@ export default function TodayTaskListView() {
                                     className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                     onClick={handleSaveClick}
                                 >
-                                    {initialTask ? 'Lưu thay đổi' : 'Tạo Task'}
+                                    {initialTask ? 'Save changes' : 'Create Task'}
                                 </button>
                                 <button
                                     className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200"
                                     onClick={onClose}
                                 >
-                                    Hủy
+                                    Cancel
                                 </button>
                             </>
                         ) : (
@@ -238,7 +238,7 @@ export default function TodayTaskListView() {
                                 className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200"
                                 onClick={onClose}
                             >
-                                Đóng
+                                Close
                             </button>
                         )}
                     </div>
