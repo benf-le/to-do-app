@@ -16,7 +16,7 @@ interface User {
     userType: string;
 }
 
-// ✅ Sidebar component
+// Sidebar component
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { title: "Calendar", path: "/calendar" },
     ];
 
-    // ✅ Gọi API lấy thông tin người dùng khi Sidebar được mount
+    // Gọi API lấy thông tin người dùng khi Sidebar được mount
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         fetchUser();
     }, [cookies.AuthToken]);
 
-    // ✅ Xử lý logout
+    // Xử lý logout
     const handleLogout = () => {
         removeCookie("AuthToken", { path: "/" });
         localStorage.removeItem("userId");
@@ -141,6 +141,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
                             >
                                 Settings
+                            </Link>
+                            <Link
+                                to="https://forms.gle/eLEb9KUGkgVqxhwe8" // Thay bằng đường dẫn thực tế
+                                onClick={() => setIsUserMenuOpen(false)}
+                                className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                            >
+                                App Feedback
                             </Link>
                             <button
                                 onClick={handleLogout}

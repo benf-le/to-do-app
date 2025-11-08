@@ -123,6 +123,13 @@ export default function MobileNav({ onOpenSidebar }: MobileNavProps) {
                             >
                                 Setting
                             </Link>
+                            <Link
+                                to="https://forms.gle/eLEb9KUGkgVqxhwe8" // Thay bằng đường dẫn thực tế
+                                onClick={() => setIsUserMenuOpen(false)}
+                                className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                            >
+                                App Feedback
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300"
