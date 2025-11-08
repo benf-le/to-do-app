@@ -27,23 +27,12 @@ export default function TaskListView() {
             queryClient.invalidateQueries({queryKey: ["tasks"]}),
     });
 
-    // --- STATE ĐÃ THAY ĐỔI ---
-    // Gộp state quản lý modal (bao gồm cả tạo mới)
     const [modalState, setModalState] = useState<{task?: Task, isEditing: boolean} | null>(null);
-
-    // Bỏ state không cần thiết
-    // const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-    // const [formValues, setFormValues] = useState<Partial<Task>>({}); // Không cần nữa
-
     const [deadlineSortOrder, setdeadlineSortOrder] = useState<"asc" | "desc" | null>("asc");
     const [statusSortOrder, setStatusSortOrder] = useState<"asc" | "desc" | null>("desc");
 
-    // --- BỎ HÀM KHÔNG CẦN THIẾT ---
-    // const handleSave = () => { ... }; // Chuyển vào modal
-    // const handleCancel = () => { ... }; // Chuyển vào modal
 
     const sortedTasks = useMemo(() => {
-// ... (code sắp xếp không đổi)
         if (!tasks) return [];
         const result = [...tasks];
 
@@ -70,23 +59,21 @@ export default function TaskListView() {
         return result;
     }, [tasks, deadlineSortOrder, statusSortOrder]);
 
-    // --- BỎ COMPONENT FORM KHÔNG CẦN THIẾT ---
-    // const EditFormFields = () => ( ... ); // Chuyển logic vào modal
-    // -----------------------------
 
-    // 2. TẠO COMPONENT MODAL MỚI (ĐÃ NÂNG CẤP HOÀN CHỈNH)
     const TaskDetailModal = ({
-                                 initialTask, // Đổi tên và cho phép undefined
+                                 initialTask,
                                  isEditing,
                                  onClose,
-                                 onSave,
-                                 onCreate // Thêm prop mới
+                                 onEdit,      
+                                 onDelete,    
                              }: {
-        initialTask?: Task; // Có thể không có task ban đầu (khi tạo mới)
+        initialTask?: Task;
         isEditing: boolean;
         onClose: () => void;
-        onSave: (data: Partial<Task>) => void; // Dùng khi update
-        onCreate: (data: Partial<Task>) => void; // Dùng khi create
+        onSave: (data: Partial<Task>) => void;
+        onCreate: (data: Partial<Task>) => void;
+        onEdit: () => void;          
+        onDelete: () => void;        
     }) => {
 
         // State nội bộ cho form (khởi tạo với initialTask hoặc giá trị mặc định)
@@ -95,7 +82,6 @@ export default function TaskListView() {
             description: initialTask?.description || "",
             status: initialTask?.status || Status.TODO,
             dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate).toISOString().slice(0, 16) : FormatDateTimeLocal(new Date()), // Mặc định hôm nay nếu tạo mới
-            // Các trường khác giữ nguyên từ initialTask nếu có
             createdAt: initialTask?.createdAt,
             updatedAt: initialTask?.updatedAt,
         });
@@ -116,26 +102,12 @@ export default function TaskListView() {
             setForm({ ...form, [e.target.name]: e.target.value });
         };
 
-        const handleSaveClick = () => {
-            // Chuyển đổi dueDate về ISO string trước khi lưu/tạo
-            const payload = {
-                ...form,
-                dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
-            };
 
-            // Gọi hàm tương ứng dựa trên việc có initialTask hay không
-            if (initialTask) {
-                onSave(payload); // Gọi onSave nếu là update
-            } else {
-                onCreate(payload); // Gọi onCreate nếu là create
-            }
-        };
 
         // Xác định task hiển thị (cho chế độ xem)
         const displayTask = initialTask || (form as Task); // Hiển thị task ban đầu hoặc form nếu tạo mới
 
         return (
-            // Backdrop (lớp mờ)
             <div
                 className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4"
                 onClick={onClose} // Click backdrop để đóng
@@ -244,23 +216,34 @@ export default function TaskListView() {
 
                     {/* Nút bấm (thay đổi theo chế độ) */}
                     <div className="mt-6 flex gap-3">
-                        {isEditing ? (
+                        {!isEditing ? (
                             <>
+                                {/* Nhóm nút dành cho mobile */}
+                                <div className="flex gap-3 w-full md:hidden">
+                                    <button
+                                        className="w-1/2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                        onClick={onEdit}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        className="w-1/2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                        onClick={onDelete}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+
+                                {/* Nút Close (luôn có, nhưng trên mobile sẽ nằm dưới 2 nút trên) */}
                                 <button
-                                    className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                                    onClick={handleSaveClick}
-                                >
-                                    {initialTask ? 'Save changes' : 'Create Task'} {/* Thay đổi text nút */}
-                                </button>
-                                <button
-                                    className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200"
+                                    className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200 mt-3"
                                     onClick={onClose}
                                 >
-                                    Cancel
+                                    Close
                                 </button>
                             </>
                         ) : (
-                            <button
+                        <button
                                 className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200"
                                 onClick={onClose}
                             >
@@ -275,7 +258,6 @@ export default function TaskListView() {
     // -----------------------------
     return (
         <div>
-            {/* Sửa lề cho mobile */}
             <div className="w-[95%] md:w-[90%] mx-auto py-6">
                 {/* Header */}
                 <div className="flex justify-between mb-6">
@@ -291,7 +273,6 @@ export default function TaskListView() {
                     </button>
                 </div>
 
-                {/* Bọc bảng trong div cho phép cuộn ngang (overflow-x-auto) */}
                 <div className="rounded-2xl bg-white shadow-sm overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
@@ -337,7 +318,6 @@ export default function TaskListView() {
                         </tr>
                         </thead>
                         <tbody>
-                        {/* --- XÓA BỎ HÀNG TẠO MỚI INLINE --- */}
                         {sortedTasks?.map((task, idx) => (
                             // --- VIEW HIỂN THỊ TASK (BÌNH THƯỜNG) ---
                             <tr
@@ -426,24 +406,35 @@ export default function TaskListView() {
                 </div>
             </div>
 
-            {/* --- RENDER MODAL MỚI (ĐÃ CẬP NHẬT LOGIC) --- */}
             {modalState && (
                 <TaskDetailModal
-                    initialTask={modalState.task} // Truyền task (có thể undefined)
+                    initialTask={modalState.task}
                     isEditing={modalState.isEditing}
                     onClose={() => setModalState(null)}
-                    onSave={(updatedData) => { // Chỉ gọi khi update (initialTask tồn tại)
-                        if (modalState.task) { // Đảm bảo có task để update
+                    onSave={(updatedData) => {
+                        if (modalState.task) {
                             updateMutation.mutate({ id: modalState.task.id, task: updatedData });
                         }
-                        setModalState(null); // Tự động đóng sau khi lưu
+                        setModalState(null);
                     }}
-                    onCreate={(newData) => { // Chỉ gọi khi create (initialTask không tồn tại)
-                        createMutation.mutate(newData as Task); // Ép kiểu vì backend cần Task đầy đủ
-                        setModalState(null); // Tự động đóng sau khi tạo
+                    onCreate={(newData) => {
+                        createMutation.mutate(newData as Task);
+                        setModalState(null);
+                    }}
+                    onEdit={() => {
+                        // chuyển modal sang chế độ edit
+                        setModalState((prev) => prev ? { ...prev, isEditing: true } : prev);
+                    }}
+                    onDelete={() => {
+                        if (!modalState.task) return;
+                        if (window.confirm(`Delete task "${modalState.task.title}"?`)) {
+                            deleteMutation.mutate(modalState.task.id);
+                            setModalState(null);
+                        }
                     }}
                 />
             )}
+
         </div>
     );
 }

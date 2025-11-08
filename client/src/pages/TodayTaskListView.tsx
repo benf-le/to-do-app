@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Status, type Task } from "../models/task.ts";
 import { createTask, deleteTask, getTasks, updateTask } from "../api/tasks.ts";
 import { useState } from "react";
-import { FormatDateTimeLocal } from "../components/FormatDateTimeLocal.tsx"; // Import FormatDateTimeLocal
+import { FormatDateTimeLocal } from "../components/FormatDateTimeLocal.tsx";
 
 export default function TodayTaskListView() {
     const queryClient = useQueryClient();
@@ -24,53 +24,50 @@ export default function TodayTaskListView() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
     });
 
-    // Lấy ngày hôm nay (YYYY-MM-DD)
     const today = new Date().toISOString().split("T")[0];
-    const todayISO = new Date(today).toISOString(); // Lấy ISO string cho hôm nay
+    const todayISO = new Date(today).toISOString();
 
-    // --- STATE ĐÃ THAY ĐỔI ---
-    const [modalState, setModalState] = useState<{task?: Task, isEditing: boolean} | null>(null);
+    const [modalState, setModalState] =
+        useState<{ task?: Task; isEditing: boolean } | null>(null);
 
-    // Bỏ state không cần thiết
-    // const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-    // const [formValues, setFormValues] = useState<Partial<Task>>({});
+    // lọc task hôm nay
+    const todayTasks = Array.isArray(tasks)
+        ? tasks.filter(
+            (t: Task) =>
+                t.dueDate &&
+                new Date(t.dueDate).toISOString().split("T")[0] === today
+        )
+        : [];
 
-    // --- BỎ HÀM KHÔNG CẦN THIẾT ---
-    // const handleSave = () => { ... };
-    // const handleCancel = () => { ... };
-
-    // Lọc task theo hôm nay
-    const todayTasks = Array.isArray(tasks) ? tasks.filter(
-        (task: Task ) =>
-            task.dueDate &&
-            new Date(task.dueDate).toISOString().split("T")[0] === today
-    ) : []; // Nếu 'tasks' không phải là mảng, dùng mảng rỗng
-
-    // --- COMPONENT MODAL (SAO CHÉP TỪ TASKLISTVIEW) ---
     const TaskDetailModal = ({
                                  initialTask,
                                  isEditing,
                                  onClose,
                                  onSave,
                                  onCreate,
-                                 forceTodayDate // Prop mới để ép ngày hôm nay
+                                 forceTodayDate,
+                                 onEdit,   // ✅ thêm
+                                 onDelete, // ✅ thêm
                              }: {
         initialTask?: Task;
         isEditing: boolean;
         onClose: () => void;
         onSave: (data: Partial<Task>) => void;
         onCreate: (data: Partial<Task>) => void;
-        forceTodayDate?: boolean; // Tùy chọn: ép dueDate là hôm nay
+        forceTodayDate?: boolean;
+        onEdit: () => void;      // ✅
+        onDelete: () => void;    // ✅
     }) => {
-
         const [form, setForm] = useState<Partial<Task>>({
             title: initialTask?.title || "",
             description: initialTask?.description || "",
             status: initialTask?.status || Status.TODO,
-            // Nếu tạo mới và ép ngày hôm nay, dùng todayISO, ngược lại dùng logic cũ
-            dueDate: (isEditing && !initialTask && forceTodayDate)
-                ? FormatDateTimeLocal(new Date(todayISO))
-                : (initialTask?.dueDate ? new Date(initialTask.dueDate).toISOString().slice(0, 16) : FormatDateTimeLocal(new Date())),
+            dueDate:
+                isEditing && !initialTask && forceTodayDate
+                    ? FormatDateTimeLocal(new Date(todayISO))
+                    : initialTask?.dueDate
+                        ? new Date(initialTask.dueDate).toISOString().slice(0, 16)
+                        : FormatDateTimeLocal(new Date()),
             createdAt: initialTask?.createdAt,
             updatedAt: initialTask?.updatedAt,
         });
@@ -82,28 +79,26 @@ export default function TodayTaskListView() {
                 month: "2-digit",
                 year: "numeric",
                 hour: "2-digit",
-                minute: "2-digit"
+                minute: "2-digit",
             });
         };
 
-        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-            setForm({ ...form, [e.target.name]: e.target.value });
-        };
+        const handleInputChange = (
+            e: React.ChangeEvent<
+                HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+            >
+        ) => setForm({ ...form, [e.target.name]: e.target.value });
 
         const handleSaveClick = () => {
             const payload = {
                 ...form,
-                // Nếu ép ngày hôm nay, luôn dùng todayISO, ngược lại dùng giá trị từ form
                 dueDate: forceTodayDate
                     ? todayISO
-                    : (form.dueDate ? new Date(form.dueDate).toISOString() : null),
+                    : form.dueDate
+                        ? new Date(form.dueDate).toISOString()
+                        : null,
             };
-
-            if (initialTask) {
-                onSave(payload);
-            } else {
-                onCreate(payload);
-            }
+            initialTask ? onSave(payload) : onCreate(payload);
         };
 
         const displayTask = initialTask || (form as Task);
@@ -117,7 +112,7 @@ export default function TodayTaskListView() {
                     className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Header Modal */}
+                    {/* Header */}
                     <div className="flex justify-between items-center mb-4 border-b pb-3">
                         {isEditing ? (
                             <textarea
@@ -130,7 +125,9 @@ export default function TodayTaskListView() {
                                 autoFocus
                             />
                         ) : (
-                            <h2 className="flex-1 text-2xl font-bold text-gray-800 break-words">{displayTask.title}</h2>
+                            <h2 className="flex-1 text-2xl font-bold text-gray-800 break-words">
+                                {displayTask.title}
+                            </h2>
                         )}
                         <button
                             className="text-gray-500 hover:text-gray-800 text-3xl font-light ml-4"
@@ -140,7 +137,7 @@ export default function TodayTaskListView() {
                         </button>
                     </div>
 
-                    {/* Status Badge */}
+                    {/* Status */}
                     <div className="mb-4">
                         <label className="text-sm font-medium text-gray-500">Status</label>
                         <div className="mt-1">
@@ -157,9 +154,21 @@ export default function TodayTaskListView() {
                                 </select>
                             ) : (
                                 <>
-                                    {displayTask.status === Status.DONE && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-emerald-100 text-emerald-700">DONE</span> )}
-                                    {displayTask.status === Status.IN_PROGRESS && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-amber-100 text-amber-700">IN PROGRESS</span> )}
-                                    {displayTask.status === Status.TODO && ( <span className="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 text-gray-700">TO DO</span> )}
+                                    {displayTask.status === Status.DONE && (
+                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-emerald-100 text-emerald-700">
+                      DONE
+                    </span>
+                                    )}
+                                    {displayTask.status === Status.IN_PROGRESS && (
+                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-amber-100 text-amber-700">
+                      IN PROGRESS
+                    </span>
+                                    )}
+                                    {displayTask.status === Status.TODO && (
+                                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 text-gray-700">
+                      TO DO
+                    </span>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -167,7 +176,9 @@ export default function TodayTaskListView() {
 
                     {/* Description */}
                     <div className="mb-4">
-                        <label className="text-sm font-medium text-gray-500">Mô tả</label>
+                        <label className="text-sm font-medium text-gray-500">
+                            Description
+                        </label>
                         {isEditing ? (
                             <textarea
                                 name="description"
@@ -183,48 +194,79 @@ export default function TodayTaskListView() {
                         )}
                     </div>
 
-                    {/* Details Grid */}
+                    {/* Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
                         <div>
                             <div className="font-medium text-gray-500 text-sm">Deadline</div>
-                            {/* Luôn hiển thị input date nếu ép ngày hôm nay, hoặc khi đang edit */}
                             {(isEditing || forceTodayDate) ? (
                                 <input
                                     type="datetime-local"
                                     name="dueDate"
-                                    className={`border p-2 rounded w-full ${forceTodayDate ? 'bg-gray-100' : ''}`} // Làm mờ nếu bị ép ngày
+                                    className={`border p-2 rounded w-full ${
+                                        forceTodayDate ? "bg-gray-100" : ""
+                                    }`}
                                     value={form.dueDate || ""}
                                     onChange={handleInputChange}
-                                    disabled={forceTodayDate} // Vô hiệu hóa nếu bị ép ngày
+                                    disabled={forceTodayDate}
                                 />
                             ) : (
-                                <div className="text-blue-600 font-medium">{formatDate(displayTask.dueDate)}</div>
+                                <div className="text-blue-600 font-medium">
+                                    {formatDate(displayTask.dueDate)}
+                                </div>
                             )}
                         </div>
-                        {/* Chỉ hiển thị Ngày tạo/Cập nhật khi xem chi tiết */}
+
                         {!isEditing && initialTask && (
                             <>
                                 <div>
-                                    <div className="font-medium text-gray-500 text-sm">Created At</div>
+                                    <div className="font-medium text-gray-500 text-sm">
+                                        Created At
+                                    </div>
                                     <div>{formatDate(displayTask.createdAt)}</div>
                                 </div>
                                 <div>
-                                    <div className="font-medium text-gray-500 text-sm">Last Updated</div>
+                                    <div className="font-medium text-gray-500 text-sm">
+                                        Last Updated
+                                    </div>
                                     <div>{formatDate(displayTask.updatedAt)}</div>
                                 </div>
                             </>
                         )}
                     </div>
 
-                    {/* Nút bấm */}
                     <div className="mt-6 flex gap-3">
-                        {isEditing ? (
+                        {!isEditing ? (
+                            <>
+                                {/* Mobile-only controls */}
+                                <div className="flex gap-3 w-full md:hidden">
+                                    <button
+                                        className="w-1/2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                        onClick={onEdit}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        className="w-1/2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                        onClick={onDelete}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+
+                                <button
+                                    className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200 mt-3"
+                                    onClick={onClose}
+                                >
+                                    Close
+                                </button>
+                            </>
+                        ) : (
                             <>
                                 <button
                                     className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                     onClick={handleSaveClick}
                                 >
-                                    {initialTask ? 'Save changes' : 'Create Task'}
+                                    {initialTask ? "Save changes" : "Create Task"}
                                 </button>
                                 <button
                                     className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200"
@@ -233,21 +275,13 @@ export default function TodayTaskListView() {
                                     Cancel
                                 </button>
                             </>
-                        ) : (
-                            <button
-                                className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200"
-                                onClick={onClose}
-                            >
-                                Close
-                            </button>
                         )}
                     </div>
                 </div>
             </div>
         );
     };
-    // -----------------------------
-
+    // --------------------------------------------------------------------
 
     return (
         <div>
@@ -258,82 +292,73 @@ export default function TodayTaskListView() {
                     </h1>
                     <button
                         className="bg-amber-500 text-white px-4 py-2 rounded"
-                        // Mở modal ở chế độ TẠO MỚI (ép ngày hôm nay)
-                        onClick={() => {
-                            setModalState({ task: undefined, isEditing: true });
-                        }}
+                        onClick={() => setModalState({ task: undefined, isEditing: true })}
                     >
                         + Create Task
                     </button>
                 </div>
 
-                <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+                <div className="rounded-2xl bg-white shadow-sm overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
                         <tr>
-                            <th className="text-left px-4 py-3">#</th>
+                            {/* Ẩn giống All Task */}
+                            <th className="hidden md:table-cell text-left px-4 py-3">#</th>
                             <th className="text-left px-4 py-3">Name</th>
-                            <th className="text-left px-4 py-3">Description</th>
+                            <th className="hidden md:table-cell text-left px-4 py-3">Description</th>
                             <th className="text-left px-4 py-3">Status</th>
-                            <th className="text-left px-4 py-3">Action</th>
+                            <th className="hidden md:table-cell text-left px-4 py-3">Action</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {/* --- BỎ HÀNG TẠO MỚI INLINE --- */}
-                        {todayTasks?.map((task, idx) => ( // Dùng todayTasks đã lọc
-                            // --- VIEW HIỂN THỊ TASK (BÌNH THƯỜNG) ---
+                        {todayTasks?.map((task, idx) => (
                             <tr
                                 key={task.id}
                                 className="hover:bg-gray-50 cursor-pointer"
-                                // Mở modal ở chế độ XEM
                                 onClick={() => setModalState({ task, isEditing: false })}
                             >
-                                <td className="hidden md:table-cell px-4 py-3 ">{idx + 1}</td>
+                                <td className="hidden md:table-cell px-4 py-3">{idx + 1}</td>
 
-                                <td
-                                    className="px-4 py-3 font-semibold max-w-[15rem] line-clamp-3"
-                                >
+                                <td className="px-4 py-3 font-semibold max-w-[15rem] line-clamp-3">
                                     {task.title}
                                 </td>
-                                <td
-                                    className="hidden md:table-cell px-4 py-3 text-gray-500 max-w-[20rem] line-clamp-3"
-                                >
+
+                                <td className="hidden md:table-cell px-4 py-3 text-gray-500 max-w-[20rem] line-clamp-3">
                                     {task.description}
                                 </td>
-                                <td className="px-4 py-3 ">
+
+                                <td className="px-4 py-3">
                                     {task.status === Status.DONE && (
-                                        <span
-                                            className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
-                                          DONE
-                                        </span>
+                                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
+                        DONE
+                      </span>
                                     )}
                                     {task.status === Status.IN_PROGRESS && (
-                                        <span
-                                            className="px-3 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
-                                          IN PROGRESS
-                                        </span>
+                                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
+                        IN PROGRESS
+                      </span>
                                     )}
                                     {task.status === Status.TODO && (
-                                        <span
-                                            className="px-3 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700">
-                                          TODO
-                                        </span>
+                                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700">
+                        TODO
+                      </span>
                                     )}
                                 </td>
+
                                 <td className="hidden md:table-cell py-3">
                                     <div className="flex gap-2">
                                         <button
                                             className="px-2 py-1 bg-blue-500 text-white rounded"
-                                            // Mở modal ở chế độ SỬA
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setModalState({ task, isEditing: true });
                                             }}
-                                        >Edit
+                                        >
+                                            Edit
                                         </button>
 
                                         <button
-                                            className="px-2 py-1 bg-red-500 text-white rounded "
+                                            className="px-2 py-1 bg-red-500 text-white rounded"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 if (
@@ -355,7 +380,7 @@ export default function TodayTaskListView() {
                         {todayTasks?.length === 0 && (
                             <tr>
                                 <td colSpan={5} className="text-center py-6 text-gray-500">
-                                    Không có công việc nào cho hôm nay
+                                    No tasks for today.
                                 </td>
                             </tr>
                         )}
@@ -364,17 +389,19 @@ export default function TodayTaskListView() {
                 </div>
             </div>
 
-            {/* --- RENDER MODAL --- */}
+            {/* Modal */}
             {modalState && (
                 <TaskDetailModal
                     initialTask={modalState.task}
                     isEditing={modalState.isEditing}
                     onClose={() => setModalState(null)}
-                    // Luôn ép ngày hôm nay khi lưu/tạo từ view này
                     forceTodayDate={true}
                     onSave={(updatedData) => {
                         if (modalState.task) {
-                            updateMutation.mutate({ id: modalState.task.id, task: updatedData });
+                            updateMutation.mutate({
+                                id: modalState.task.id,
+                                task: updatedData,
+                            });
                         }
                         setModalState(null);
                     }}
@@ -382,9 +409,18 @@ export default function TodayTaskListView() {
                         createMutation.mutate(newData as Task);
                         setModalState(null);
                     }}
+                    onEdit={() => {
+                        setModalState((prev) => (prev ? { ...prev, isEditing: true } : prev));
+                    }}
+                    onDelete={() => {
+                        if (!modalState.task) return;
+                        if (window.confirm(`Delete task "${modalState.task.title}"?`)) {
+                            deleteMutation.mutate(modalState.task.id);
+                            setModalState(null);
+                        }
+                    }}
                 />
             )}
         </div>
     );
 }
-

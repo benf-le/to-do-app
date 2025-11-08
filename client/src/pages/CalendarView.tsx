@@ -1,198 +1,210 @@
-import {useMemo, useState} from "react";
-import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import {addHours, format, startOfDay} from "date-fns";
-import {vi as viLocale} from "date-fns/locale";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { addHours, format, startOfDay, startOfWeek as dfStartOfWeek, getDay as dfGetDay } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import {
     Calendar,
     dateFnsLocalizer,
     type Event,
     Views,
+    type View,
 } from "react-big-calendar";
-
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
+import { getTasks, createTask, updateTask, deleteTask } from "../api/tasks";
+import { Status, type Task } from "../models/task";
 
-import {getTasks, createTask, updateTask, deleteTask} from "../api/tasks";
-import {Status, type Task} from "../models/task";
+// ==== Locale imports (thêm en-US / en-GB / en-IN / vi) ====
+import { enUS, enGB, enIN } from "date-fns/locale";
+import { vi as viLocale } from "date-fns/locale";
 
-const locales = { vi: viLocale };
-const localizer = dateFnsLocalizer({
-    format,
-    parse: (str: string | number | Date) => {
-        // lazy parse: new Date(str) cho date-only vẫn OK
-        return new Date(str);
-    },
-    startOfWeek: (date: string | number | Date) => {
-        // Tuần bắt đầu từ thứ 2 (theo VN)
-        const d = new Date(date);
-        const day = d.getDay();
-        const diff = (day === 0 ? -6 : 1) - day; // chuyển về thứ 2
-        d.setDate(d.getDate() + diff);
-        return d;
-    },
-    getDay: (date: string | number | Date) => new Date(date).getDay(),
-    locales,
-});
+// ==== Map các locale được hỗ trợ ====
+const LOCALES = {
+    "en-US": enUS, // Mỹ: tuần bắt đầu Chủ nhật, 12h
+    "en-GB": enGB, // Anh: tuần bắt đầu Thứ 2, 24h
+    "en-IN": enIN, // Ấn Độ: tuần bắt đầu Thứ 2, 24h
+    vi: viLocale,  // Việt Nam
+} as const;
 
-type CalEvent = Event & {
-    resource?: {
-        task: Task
-    }
-};
+// Lấy locale trình duyệt -> khớp LOCALES (fallback hợp lý)
+function getUserLocale(): keyof typeof LOCALES {
+    const nav = typeof navigator !== "undefined" ? navigator.language : "en-US";
+    if ((nav as keyof typeof LOCALES) in LOCALES) return nav as keyof typeof LOCALES;
+    if (nav.startsWith("en")) return "en-US";
+    return "en-GB"; // fallback an toàn
+}
+
+// 12h ở Mỹ, 24h các nơi khác (tuỳ chỉnh theo ý bạn)
+function getHourCycle(localeKey: string): "h12" | "h23" {
+    return localeKey === "en-US" ? "h12" : "h23";
+}
+
+// Tạo localizer theo locale (ảnh hưởng nhãn, tuần bắt đầu…)
+function makeLocalizer(localeKey: keyof typeof LOCALES) {
+    const locale = LOCALES[localeKey];
+    return dateFnsLocalizer({
+        format,
+        parse: (value: string | number | Date) => new Date(value),
+        startOfWeek: (date: Date) => dfStartOfWeek(date, { locale }), // tuần theo locale
+        getDay: (date: Date) => dfGetDay(date),
+        locales: LOCALES,
+    });
+}
+
+type CalEvent = Event & { resource?: { task: Task } };
 
 export default function CalendarView() {
     const queryClient = useQueryClient();
-
-    const {data: tasks, isLoading} = useQuery({
-        queryKey: ["tasks"],
-        queryFn: getTasks,
-    });
+    const { data: tasks, isLoading } = useQuery({ queryKey: ["tasks"], queryFn: getTasks });
 
     const createMutation = useMutation({
         mutationFn: createTask,
-        onSuccess: () => queryClient.invalidateQueries({queryKey: ["tasks"]}),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
     });
-
     const updateMutation = useMutation({
-        mutationFn: (data: {id: string; task: Partial<Task>}) => updateTask(data.id, data.task),
-        onSuccess: () => queryClient.invalidateQueries({queryKey: ["tasks"]}),
+        mutationFn: (data: { id: string; task: Partial<Task> }) => updateTask(data.id, data.task),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
     });
-
     const deleteMutation = useMutation({
         mutationFn: deleteTask,
-        onSuccess: () => queryClient.invalidateQueries({queryKey: ["tasks"]}),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
     });
 
-    const [view, setView] = useState(Views.MONTH); // MONTH | WEEK | DAY | AGENDA
+    // ==== View/Date có typing đúng, không cần ts-ignore ====
+    const [view, setView] = useState<View>(Views.MONTH);
     const [date, setDate] = useState(new Date());
 
-    // Map Task -> Calendar Event
+    // ==== Locale & Timezone ====
+    const [localeKey, setLocaleKey] = useState<keyof typeof LOCALES>(getUserLocale());
+    const [timeZone, setTimeZone] = useState("UTC");
+
+    useEffect(() => {
+        try {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+            setTimeZone(tz); // ví dụ: "Asia/Kolkata", "America/New_York", "Europe/London", "Asia/Ho_Chi_Minh"
+        } catch {
+            setTimeZone("UTC");
+        }
+    }, []);
+
+    useEffect(() => {
+        setLocaleKey(getUserLocale());
+    }, []);
+    // Localizer theo locale đã detect
+    const localizer = makeLocalizer(localeKey);
+
+    // Định dạng theo 12h/24h phù hợp từng nước
+    const hourCycle = getHourCycle(localeKey);
+    const fmt = (opts: Intl.DateTimeFormatOptions) =>
+        new Intl.DateTimeFormat(localeKey, { hourCycle, ...opts });
+
+    const formats = {
+        timeGutterFormat: (d: Date) => fmt({ hour: "numeric", minute: "2-digit" }).format(d),
+        eventTimeRangeFormat: ({ start, end }: { start: Date; end: Date }) =>
+            `${fmt({ hour: "numeric", minute: "2-digit" }).format(start)} – ${fmt({
+                hour: "numeric",
+                minute: "2-digit",
+            }).format(end)}`,
+        dayHeaderFormat: (d: Date) =>
+            fmt({ weekday: "long", year: "numeric", month: "long", day: "numeric" }).format(d),
+    };
+
+    // --- Chuyển event UTC -> giờ địa phương theo timezone người dùng ---
     const events: CalEvent[] = useMemo(() => {
         if (!tasks) return [];
-        // @ts-ignore
         return tasks.map((t) => {
-            const start = t.dueDate ? new Date(t.dueDate) : new Date(t.createdAt);
-            // hiển thị 1h cho event có time, nếu chỉ có ngày thì allDay
-            const isAllDay = !t.dueDate || t.dueDate.length <= 10; // dạng "YYYY-MM-DD"
-            const startAtLocal = isAllDay ? startOfDay(start) : start;
-            const endAtLocal = isAllDay ? addHours(startAtLocal, 24) : addHours(startAtLocal, 1);
-
+            const baseDate = t.dueDate ? new Date(t.dueDate) : new Date(t.createdAt); // nên là UTC ISO từ backend
+            const startLocal = toZonedTime(baseDate, timeZone);
+            const endLocal = addHours(startLocal, 1);
             return {
                 id: t.id,
                 title: t.title,
-                start: startAtLocal,
-                end: endAtLocal,
-                allDay: isAllDay,
-                resource: {task: t},
+                start: startLocal,
+                end: endLocal,
+                allDay: false,
+                resource: { task: t },
             };
         });
-    }, [tasks]);
+    }, [tasks, timeZone]);
 
-    // Tạo nhanh khi click vào 1 ngày trống
-    const handleSelectSlot = async ({start}: { start: Date; end: Date; slots: Date[]; action: "select" }) => {
-        const title = window.prompt("Nhập tiêu đề task:");
+    // --- Click event: sửa/xoá nhanh ---
+    const handleSelectEvent = async (ev: CalEvent) => {
+        const task = ev.resource?.task;
+        if (!task) return;
+        const action = window.prompt(
+            `Edit title or type "delete" to remove\nCurrent: ${task.title}`,
+            task.title
+        );
+        if (!action) return;
+        if (action.toLowerCase() === "delete") {
+            if (window.confirm(`Delete task "${task.title}"?`)) {
+                await deleteMutation.mutateAsync(task.id);
+            }
+            return;
+        }
+        if (action.trim() && action.trim() !== task.title) {
+            await updateMutation.mutateAsync({ id: task.id, task: { title: action.trim() } });
+        }
+    };
+
+    // --- Click slot: tạo task mới (lưu UTC) ---
+    const handleSelectSlot = async ({ start }: { start: Date }) => {
+        const title = window.prompt("Task title:");
         if (!title) return;
-
-        // Đặt dueDate = đầu ngày (local) rồi convert ISO
-        const due = startOfDay(start).toISOString();
-
+        const due = startOfDay(start).toISOString(); // lưu UTC
         await createMutation.mutateAsync({
             title,
             description: "",
             status: Status.TODO,
             dueDate: due,
-            estimatedTime: null,
-            actualTime: null,
-            completedAt: null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            id: "temp", // backend sẽ bỏ qua/ghi đè
+            id: "temp",
         } as unknown as Task);
     };
 
-    // Click vào event: cho edit nhanh / delete
-    const handleSelectEvent = async (ev: CalEvent) => {
-        const task = ev.resource?.task;
-        if (!task) return;
-
-        const action = window.prompt(
-            `Sửa tiêu đề hoặc gõ "delete" để xoá\nHiện tại: ${task.title}`,
-            task.title
-        );
-
-        if (action === null) return;
-        if (action.toLowerCase() === "delete") {
-            if (window.confirm(`Xoá task "${task.title}"?`)) {
-                await deleteMutation.mutateAsync(task.id);
-            }
-            return;
-        }
-
-        if (action.trim() && action.trim() !== task.title) {
-            await updateMutation.mutateAsync({id: task.id, task: {title: action.trim()}});
-        }
-    };
-
-    // Đổi ngày event bằng kéo (nếu muốn bật draggable, dùng addon của RBC; ở đây chỉ cho phép click/slot)
-    // Tối giản: khi đổi ngày (chuyển view hoặc click next/prev) không cần gì thêm
-
-    // Màu theo status
+    // --- Màu theo trạng thái ---
     const eventPropGetter = (event: CalEvent) => {
         const status = event.resource?.task.status;
-        let bg = "#e5e7eb"; // gray-200
-        let color = "#111827"; // gray-900
-        if (status === Status.IN_PROGRESS) {
-            bg = "#fde68a"; // amber-300
-            color = "#78350f"; // amber-900
-        } else if (status === Status.DONE) {
-            bg = "#a7f3d0"; // emerald-200
-            color = "#064e3b"; // emerald-900
-        }
-        return {
-            style: {
-                backgroundColor: bg,
-                color,
-                borderRadius: 8,
-                border: "none",
-                padding: "2px 6px",
-            }
-        };
+        let bg = "#e5e7eb";
+        let color = "#111827";
+        if (status === Status.IN_PROGRESS) { bg = "#fde68a"; color = "#78350f"; }
+        else if (status === Status.DONE) { bg = "#a7f3d0"; color = "#064e3b"; }
+        return { style: { backgroundColor: bg, color, borderRadius: 8, border: "none", padding: "2px 6px" } };
     };
-
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">Calendar View</h1>
-                <div className="text-sm text-gray-600">Xem theo tháng/tuần/ngày. Click ngày để thêm, click event để sửa/xoá.</div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+                <h1 className="text-2xl font-bold">🌍 Calendar View</h1>
+                <div className="text-sm text-gray-600">
+                    Timezone: <span className="font-medium">{timeZone}</span> · Locale: <span className="font-medium">{localeKey}</span>
+                </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm p-3 h-[78vh]">
                 {isLoading ? (
-                    <div className="p-6 text-gray-500">Đang tải…</div>
+                    <div className="p-6 text-gray-500">Loading…</div>
                 ) : (
                     <Calendar
                         localizer={localizer}
-                        culture="vi"
+                        culture={localeKey} // 👉 tự hiển thị đúng cho US/UK/IN/VN
                         events={events}
                         startAccessor="start"
                         endAccessor="end"
                         views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
                         view={view}
                         date={date}
-                        // @ts-ignore
                         onView={(v) => setView(v)}
                         onNavigate={(d) => setDate(d)}
                         selectable
                         popup
-                        // @ts-ignore
                         onSelectSlot={handleSelectSlot}
                         onSelectEvent={handleSelectEvent}
                         eventPropGetter={eventPropGetter}
-                        toolbar={true}
+                        formats={formats}    // 👉 12h ở US, 24h ở UK/IN/VN
                         step={30}
                         timeslots={2}
-                        // style={{ height: "78vh" }} // đã dùng class h-[78vh]
                     />
                 )}
             </div>
