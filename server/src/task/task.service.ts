@@ -34,10 +34,28 @@ export class TaskService {
     }
   }
 
+  async getTasksByUserId(userId: string) {
+    try {
+      return await this.prismaService.task.findMany({
+        where: {
+          userId: userId,
+        },
+        orderBy: {
+          createdAt: 'desc', // sắp xếp nếu cần
+        },
+      });
+    } catch (error) {
+      console.error('[TaskService.getTasksByUserId] Error:', error);
+      throw new InternalServerErrorException('Could not fetch tasks by user');
+    }
+  }
+
   async createTask(taskDTO: TaskDTO, userId: string) {
     // BƯỚC 1: LOG DỮ LIỆU ĐẦU VÀO
     this.logger.log(`[DEBUG] Attempting to create task for user: ${userId}`);
-    this.logger.debug(`[DEBUG] DTO received: ${JSON.stringify(taskDTO, null, 2)}`);
+    this.logger.debug(
+      `[DEBUG] DTO received: ${JSON.stringify(taskDTO, null, 2)}`,
+    );
 
     const data = {
       title: taskDTO.title,
@@ -50,7 +68,9 @@ export class TaskService {
       userId: userId, // Giữ nguyên cấu trúc này
     };
 
-    this.logger.debug(`[DEBUG] Data being sent to Prisma: ${JSON.stringify(data, null, 2)}`);
+    this.logger.debug(
+      `[DEBUG] Data being sent to Prisma: ${JSON.stringify(data, null, 2)}`,
+    );
 
     // BƯỚC 2: Thêm lại TRY...CATCH để bắt lỗi của PRISMA
     try {

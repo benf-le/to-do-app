@@ -22,6 +22,11 @@ export class TaskController {
   async getTask() {
     return await this.taskService.getAllTasks();
   }
+  @Get('/me')
+  async getMyTasks(@Users() user: UserInfo) {
+    console.log('User ID từ token:', user.id);
+    return await this.taskService.getTasksByUserId(user.id);
+  }
 
   @Get('/:id')
   async getTaskById(@Param('id') id: string) {

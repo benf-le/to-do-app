@@ -5,7 +5,7 @@ import type { Task } from '../models/task'; // 2. Giữ nguyên kiểu dữ li�
 
 export const getTasks = async (): Promise<Task[]> => {
     // 3. Dùng apiClient thay vì axios
-    const res = await apiClient.get('/tasks');
+    const res = await apiClient.get('/tasks/me');
     return res.data;
 };
 
