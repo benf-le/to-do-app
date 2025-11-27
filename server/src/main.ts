@@ -3,13 +3,9 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({
-    origin: 'https://todolist.io.vn',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+  app.enableCors({});
 
   // app.setGlobalPrefix('api'); // nếu bạn dùng prefix /api ở Nest, nhớ điều chỉnh proxy ở Nginx tương ứng
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  await app.listen(process.env.PORT ?? 8001, '0.0.0.0');
 }
 bootstrap();
